@@ -29,24 +29,24 @@ def mainEntrypoint():
         time.sleep(5)
 
 def collectRequirementsForAlgo():
-    logName = {"name":"logName", "value":"someString", "description":"This tring should be the name of an event log.", "type":"string"}
+    #logName = {"name":"logName", "value":"someString", "description":"This tring should be the name of an event log.", "type":"string"}
     k = {"name":"k", "lowerBound":"2", "upperBound":"2", "type":"int"} #no default values there where no in the code
     t = {"name":"t", "lowerBound":"20.0", "upperBound":"20.0", "type":"float"} #no default values there where no in the code
-    algoVariables = [logName, k, t]
-    return {**algoIdentity, "requirements":algoVariables}
+    algoVariables = [k, t]
+    return {**algoIdentity, "inputFormat":"csv", "outputStructure":"eventLog", "requirements":algoVariables}
 
 def startInstructionHandler(instruction):
     print("Entered the instruction block.", flush=True)
-    if instruction == {"instruction":"start_n_test"}:
+    if instruction["instruction"] == "start_n_test":
         print("Accessed n_test function.", flush=True)
-        requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "status":"network_stable"})
+        requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "instructionId":instruction["instructionId"], "status":"network_stable"})
     if instruction == {"instruction":"send_requirements"}:
         print("Accessed requirements function.", flush=True)
         jsonRequirements = collectRequirementsForAlgo()
         requests.post("http://cliandanalyzer:8000/myRequirements", json=jsonRequirements)
-    if isinstance(instruction.get("instruction"), dict):
+    if instruction["instruction"] == "comparison":
         print("Accessed Template function.", flush=True)
-        algoDictionary = instruction.get("instruction")
+        algoDictionary = instruction.get("payload")
         logName = "someString"
         k = 2
         t = 20.0
@@ -57,7 +57,9 @@ def startInstructionHandler(instruction):
                 k = inputValues["value"]
             if inputValues["name"] == "t":
                 t = inputValues["value"]
-        runPretsa.executePretsa(logName, k, t)
+        runPretsa.executePretsa(logName, k, t, instruction["instructionId"])
+        print("Sending the result of the template function to the server.", flush= True)
+        requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "instructionId":instruction["instructionId"], "status":"finished_privacy_enhancing_algorithm"})
     return
 
 if __name__ == "__main__":

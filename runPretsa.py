@@ -4,13 +4,13 @@ import pandas as pd
 import profile
 import pm4py
 
-def executePretsa(eventLogName, k, t, instructionId):
+def executePretsa(eventLogName, k, t, instructionId, instanceId, fileId):
     filePath = "./PRETSA/input/" + eventLogName
     kasString = str(k) #k gets new base type int
     tasString = str(t) #t gets new base type float
     sys.setrecursionlimit(3000)
-    targetFilePath = "./PRETSA/output/output_pretsa_run_" + instructionId + ".csv" #% (runID) should be added to allow server distiction between runs
-    xesTargetFilePath = "./PRETSA/output/output_pretsa_run_" + instructionId + ".xes" #add xes file Path for the xes output
+    targetFilePath = "./PRETSA/output/output_pretsa_" + instanceId + "_run_" + instructionId + "_" + fileId + ".csv" #% (runID) should be added to allow server distiction between runs
+    xesTargetFilePath = "./PRETSA/output/output_pretsa_" + instanceId + "_run_" + instructionId + "_" + fileId + ".xes" #add xes file Path for the xes output
 
 
     print("Load Event Log")

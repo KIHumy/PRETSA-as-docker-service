@@ -30,8 +30,8 @@ def mainEntrypoint():
 
 def collectRequirementsForAlgo():
     #logName = {"name":"logName", "value":"someString", "description":"This tring should be the name of an event log.", "type":"string"}
-    k = {"name":"k", "lowerBound":"2", "upperBound":"2", "type":"int"} #no default values there where no in the code
-    t = {"name":"t", "lowerBound":"20.0", "upperBound":"20.0", "type":"float"} #no default values there where no in the code
+    k = {"name":"k", "lowerBound":"1", "upperBound":None, "autoAdept":True, "type":"int"} #no default values there where no in the code
+    t = {"name":"t", "lowerBound":"0.04", "upperBound":"1.0", "autoAdept":True, "type":"float"} #no default values there where no in the code. t needs to be bigger then 0.03
     algoVariables = [k, t]
     return {**algoIdentity, "inputFormat":"csv", "outputStructure":"eventLog", "requirements":algoVariables}
 
@@ -39,7 +39,7 @@ def startInstructionHandler(instruction):
     print("Entered the instruction block.", flush=True)
     if instruction["instruction"] == "start_n_test":
         print("Accessed n_test function.", flush=True)
-        requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "instructionId":instruction["instructionId"], "status":"network_stable"})
+        requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "instructionId":instruction["instructionId"], "status":"network_stable", "fileId":""})
     if instruction == {"instruction":"send_requirements"}:
         print("Accessed requirements function.", flush=True)
         jsonRequirements = collectRequirementsForAlgo()
@@ -57,9 +57,9 @@ def startInstructionHandler(instruction):
                 k = inputValues["value"]
             if inputValues["name"] == "t":
                 t = inputValues["value"]
-        runPretsa.executePretsa(logName, k, t, instruction["instructionId"])
+        runPretsa.executePretsa(logName, k, t, instruction["instructionId"], algoIdentity["identification"]["id"], instruction["fileId"])
         print("Sending the result of the template function to the server.", flush= True)
-        requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "instructionId":instruction["instructionId"], "status":"finished_privacy_enhancing_algorithm"})
+        requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "instructionId":instruction["instructionId"], "status":"finished_privacy_enhancing_algorithm", "fileId":instruction["fileId"]})
     return
 
 if __name__ == "__main__":

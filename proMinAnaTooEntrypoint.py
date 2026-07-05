@@ -30,8 +30,8 @@ def mainEntrypoint():
 
 def collectRequirementsForAlgo():
     #logName = {"name":"logName", "value":"someString", "description":"This tring should be the name of an event log.", "type":"string"}
-    k = {"name":"k", "lowerBound":"1", "upperBound":None, "autoAdept":True, "type":"int"} #no default values there where no in the code
-    t = {"name":"t", "lowerBound":"0.04", "upperBound":"1.0", "autoAdept":True, "type":"float"} #no default values there where no in the code. t needs to be bigger then 0.03
+    k = {"name":"k", "lowerBound":"1", "upperBound":None, "autoAdept":True, "autoStart": 1, "autoSigma": 2, "type":"int"} #no default values there where no in the code
+    t = {"name":"t", "lowerBound":"0.04", "upperBound":"1.0", "autoAdept":True, "autoStart": 0.5, "autoSigma": 0.25, "type":"float"} #no default values there where no in the code. t needs to be bigger then 0.03
     algoVariables = [k, t]
     return {**algoIdentity, "inputFormat":"csv", "outputStructure":"eventLog", "requirements":algoVariables}
 
@@ -40,11 +40,11 @@ def startInstructionHandler(instruction):
     if instruction["instruction"] == "start_n_test":
         print("Accessed n_test function.", flush=True)
         requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "instructionId":instruction["instructionId"], "status":"network_stable", "fileId":""})
-    if instruction == {"instruction":"send_requirements"}:
+    if instruction["instruction"] == "send_requirements":
         print("Accessed requirements function.", flush=True)
         jsonRequirements = collectRequirementsForAlgo()
         requests.post("http://cliandanalyzer:8000/myRequirements", json=jsonRequirements)
-    if instruction["instruction"] == "comparison":
+    if instruction["instruction"] == "comparison" or instruction["instruction"] == "autoCompare":
         print("Accessed Template function.", flush=True)
         algoDictionary = instruction.get("payload")
         logName = "someString"
@@ -59,8 +59,10 @@ def startInstructionHandler(instruction):
                 t = inputValues["value"]
         runPretsa.executePretsa(logName, k, t, instruction["instructionId"], algoIdentity["identification"]["id"], instruction["fileId"])
         print("Sending the result of the template function to the server.", flush= True)
-        requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "instructionId":instruction["instructionId"], "status":"finished_privacy_enhancing_algorithm", "fileId":instruction["fileId"]})
-    return
+        if instruction["instruction"] == "comparison":
+            requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "instructionId":instruction["instructionId"], "status":"finished_privacy_enhancing_algorithm", "fileId":instruction["fileId"]})
+        else:
+            requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "instructionId":instruction["instructionId"], "status":"finished_privacy_enhancing_algorithm_for_auto_compare", "fileId":instruction["fileId"]})
 
 if __name__ == "__main__":
     mainEntrypoint()

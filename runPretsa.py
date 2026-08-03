@@ -7,10 +7,22 @@ import datetime
 
 #sanitizer function so that pretsa works with standard event logs. The function is based on add_annotation_duration.py.
 def sanitizeInputLog(eventLog):
+    # The following code is copied from PRETSA.
+    # Source: https://github.com/samadeusfp/PRETSA/blob/master/add_annotation_duration.py
+    # License: https://github.com/samadeusfp/PRETSA/blob/master/licence
+    # Changes: The only modifications are changes so it works with a pandas dataframe instead of reading a file.
+    # --- Begin of copied section (PRETSA) ---
     caseIdColName = "Case ID" #copied from add_annotation_duration.py
     durationColName = "Duration" #copied from add_annotation_duration.py
     timeStampColName = "Complete Timestamp" #copied from add_annotation_duration.py
+    # --- End of copied section ---   
+    # The following code is copied from PRETSA.
+    # Source: https://github.com/samadeusfp/PRETSA/blob/master/pretsa.py
+    # License: https://github.com/samadeusfp/PRETSA/blob/master/licence
+    # Changes: The only modifications are changes so it works with a pandas dataframe instead of reading a file.
+    # --- Begin of copied section (PRETSA) ---
     activityColName = "Activity"
+    # --- End of copied section --- 
     columnNames = eventLog.columns.tolist()
     existsCaseId = False
     existsDuration = False
@@ -47,8 +59,12 @@ def sanitizeInputLog(eventLog):
             eventLog = eventLog.rename(columns={timeStamp:timeStampColName})
     eventLog = eventLog.sort_values([caseIdColName, timeStampColName])
     if existsDuration == False:
+        # The following code is copied from PRETSA.
+	    # Source: https://github.com/samadeusfp/PRETSA/blob/master/add_annotation_duration.py
+	    # License: https://github.com/samadeusfp/PRETSA/blob/master/licence
+	    # Changes: The only modifications are changes so it works with a pandas dataframe instead of reading a file.
+	    # --- Begin of copied section (PRETSA) ---
         eventLog[durationColName] = None
-        #copied from add_annotation_duration.py. The only modifications are changes so it works with a pandas dataframe instead of reading a file.
         eventLog[timeStampColName] = pd.to_datetime(eventLog[timeStampColName])
         currentCase = ""
         for rowIndex in eventLog.index:
@@ -61,7 +77,7 @@ def sanitizeInputLog(eventLog):
             oldTimeStamp = newTimeStamp
             eventLog.at[rowIndex, durationColName] = duration
         eventLog[timeStampColName] = eventLog[timeStampColName].dt.strftime('%Y/%m/%d %H:%M:%S.%f')
-        #until here
+        # --- End of copied section ---
     return eventLog
 
 def executePretsa(eventLogName, k, t, instructionId, instanceId, fileId):

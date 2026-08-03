@@ -3,7 +3,7 @@ import time
 import json
 import socket
 import runPretsa
-
+#this file was written by Thorwin Bergholz
 algoName = "PRETSA"
 algoId = socket.gethostname()
 algoIdentity = {"identification":{"name":algoName, "id":algoId}}
@@ -30,8 +30,8 @@ def mainEntrypoint():
 
 def collectRequirementsForAlgo():
     #logName = {"name":"logName", "value":"someString", "description":"This tring should be the name of an event log.", "type":"string"}
-    k = {"name":"k", "lowerBound":"1", "upperBound":None, "autoAdept":True, "autoStart": 1, "autoSigma": 2, "type":"int"} #no default values there where no in the code
-    t = {"name":"t", "lowerBound":"0.04", "upperBound":"1.0", "autoAdept":True, "autoStart": 0.5, "autoSigma": 0.25, "type":"float"} #no default values there where no in the code. t needs to be bigger then 0.03
+    k = {"name":"k", "lowerBound":"1", "upperBound":None, "autoAdept":True, "autoStart": 1, "autoSigma": 2, "keyWordBoundUpper": "NUMBER_OF_TRACES", "keyWordBoundLower": None, "relativeInitial": 0.5, "choice": "exp_b_2", "type":"int"} #no default values there where no in the code
+    t = {"name":"t", "lowerBound":"0.04", "upperBound":"1.0", "autoAdept":True, "autoStart": 0.5, "autoSigma": 0.25, "keyWordBoundUpper": None, "keyWordBoundLower": None, "relativeInitial": None, "choice": None, "type":"float"} #no default values there where no in the code. t needs to be bigger then 0.03
     algoVariables = [k, t]
     return {**algoIdentity, "inputFormat":"csv", "outputStructure":"eventLog", "requirements":algoVariables}
 
@@ -57,7 +57,14 @@ def startInstructionHandler(instruction):
                 k = inputValues["value"]
             if inputValues["name"] == "t":
                 t = inputValues["value"]
-        runPretsa.executePretsa(logName, k, t, instruction["instructionId"], algoIdentity["identification"]["id"], instruction["fileId"])
+        maximalTryNumber = 3
+        tryNumber = 0
+        while tryNumber < maximalTryNumber:
+            try:
+                runPretsa.executePretsa(logName, k, t, instruction["instructionId"], algoIdentity["identification"]["id"], instruction["fileId"])
+                tryNumber = maximalTryNumber
+            except:
+                tryNumber = tryNumber + 1
         print("Sending the result of the template function to the server.", flush= True)
         if instruction["instruction"] == "comparison":
             requests.post("http://cliandanalyzer:8000/result/status", json={**algoIdentity, "instructionId":instruction["instructionId"], "status":"finished_privacy_enhancing_algorithm", "fileId":instruction["fileId"]})
